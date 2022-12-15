@@ -80,13 +80,17 @@ class IOBroker2Prometheus(object):
                 # response = requests.get(url, headers=self.headers, data=json.dumps(self.data))
                 response = requests.get(url)
                 out = json.loads(response.text)
+                #print(out)
                 value = out['val']
                 return_type = out['common']['type']
             except Exception as err:
                 print(timestamp + ": Not able to get device data: " + str(err))
                 value = -1
 
-            if return_type == 'number':
+            if return_type == 'boolean':
+                value = int(str(value).upper() == "TRUE")
+
+            if return_type == 'number' or return_type == 'boolean':
                 for gauge_metric_family in self.GaugeMetricFamilies:
                     FamilyName = DataPoint.split('.')[0]
                     MetricName = DataPoint.replace(FamilyName + '.0.', "").strip()
