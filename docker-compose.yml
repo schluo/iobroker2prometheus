@@ -1,0 +1,16 @@
+version: "2.2"
+services:
+  iobroker2prometheus:
+    image: iobroker2prometheus
+    container_name: iobroker2prometheus
+    restart: unless-stopped
+    user: '1000'
+    volumes:
+      - /appdata/iorbroker2prometheus:/usr/share/
+    ports:
+      - 9202:9202
+    environment:
+      - loglevel=WARNING
+      - IOBROKER_DP_FILE=/usr/share/iobroker.txt
+      - EXPORTER_PORT=2222
+      - IOBROKER_HOST=192.168.1.12
