@@ -89,7 +89,7 @@ class IOBroker2Prometheus(object):
             if return_type == 'number':
                 for gauge_metric_family in self.GaugeMetricFamilies:
                     FamilyName = DataPoint.split('.')[0]
-                    MetricName = DataPoint.replace(FamilyName + '.0.', "")
+                    MetricName = DataPoint.replace(FamilyName + '.0.', "").strip()
 
                     FamilyName = FamilyName.replace('-', '_')
                     if gauge_metric_family.name == FamilyName:
