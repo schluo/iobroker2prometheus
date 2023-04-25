@@ -38,10 +38,11 @@ from prometheus_client.core import GaugeMetricFamily, REGISTRY
 
 class IOBroker2Prometheus(object):
 
-    def __init__(self, iobroker_host, iobroker_user, iobroker_password, IOBrokerDataPoints):
+    def __init__(self, iobroker_host, iobroker_user, iobroker_password, IOBrokerDataPoints, IOBrokerAPIPort):
         self.iobroker_host = iobroker_host
         self.iobroker_password = iobroker_password
         self.iobroker_user = iobroker_user
+        self.API_Port = IOBrokerAPIPort
         self.GaugeMetricFamilies = []
         self.Infos = []
         self.IOBrokerDataPoints = IOBrokerDataPoints
@@ -56,9 +57,9 @@ class IOBroker2Prometheus(object):
         self.GaugeMetricFamilies.clear()
         self.Infos.clear()
         for DataPoint in self.IOBrokerDataPoints:
-            io_broker_object_name = DataPoint.split(".")[0].replace("-", "_")
+            io_broker_object_name = DataPoint.split(".")[0].replace("-", "_").replace("0_","")
             dp_exists = False
-
+            print(io_broker_object_name)
             for i in self.GaugeMetricFamilies:
                 if io_broker_object_name == i.name:
                     dp_exists = True
@@ -68,32 +69,42 @@ class IOBroker2Prometheus(object):
 
     def collect(self):
         timestamp = datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)")
-
         self.create_gauge_metric_families()
 
-        return_type = None
         for DataPoint in self.IOBrokerDataPoints:
+            print(DataPoint.replace('\n',''))
             try:
                 # try to get device data
-                url = f'http://{self.iobroker_host}:8087/get/{DataPoint}'
+                url = f'http://{self.iobroker_host}:{self.API_Port}/v1/object/{DataPoint}'
                 url = url.strip()
-                # response = requests.get(url, headers=self.headers, data=json.dumps(self.data))
                 response = requests.get(url)
                 out = json.loads(response.text)
-                #print(out)
-                value = out['val']
                 return_type = out['common']['type']
+                print(return_type)
             except Exception as err:
                 print(timestamp + ": Not able to get device data: " + str(err))
-                value = -1
+                return_type = ""
+
+            if return_type != "":
+                try:
+                    # try to get device data
+                    url = f'http://{self.iobroker_host}:4444/v1/state/{DataPoint}'
+                    url = url.strip()
+                    response = requests.get(url)
+                    out = json.loads(response.text)
+                    value = out['val']
+                    print(value)
+                except Exception as err:
+                    print(timestamp + ": Not able to get device data: " + str(err))
+                    value = -1
 
             if return_type == 'boolean':
                 value = int(str(value).upper() == "TRUE")
 
             if return_type == 'number' or return_type == 'boolean':
                 for gauge_metric_family in self.GaugeMetricFamilies:
-                    FamilyName = DataPoint.split('.')[0]
-                    MetricName = DataPoint.replace(FamilyName + '.0.', "").strip()
+                    FamilyName = DataPoint.split(".")[0].replace("-", "_").replace("0_", "")
+                    MetricName = DataPoint.replace(FamilyName + '.0.', "").replace('0_',"").strip()
 
                     FamilyName = FamilyName.replace('-', '_')
                     if gauge_metric_family.name == FamilyName:
@@ -126,6 +137,11 @@ def main():
         port = 8022
 
     try:
+        iobroker_api_port = int(os.environ['API_PORT'])
+    except:
+        iobroker_api_port = 4444
+
+    try:
         iobroker_host = os.environ['IOBROKER_HOST']
     except:
         iobroker_host = "127.0.0.1"
@@ -142,7 +158,7 @@ def main():
 
     start_http_server(port)
 
-    REGISTRY.register(IOBroker2Prometheus(iobroker_host, iobroker_user, iobroker_password, IOBrokerDataPoints))
+    REGISTRY.register(IOBroker2Prometheus(iobroker_host, iobroker_user, iobroker_password, IOBrokerDataPoints, iobroker_api_port))
 
     while True:
         time.sleep(1)
