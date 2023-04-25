@@ -59,7 +59,7 @@ class IOBroker2Prometheus(object):
         for DataPoint in self.IOBrokerDataPoints:
             io_broker_object_name = DataPoint.split(".")[0].replace("-", "_").replace("0_","")
             dp_exists = False
-            print(io_broker_object_name)
+            #print(io_broker_object_name)
             for i in self.GaugeMetricFamilies:
                 if io_broker_object_name == i.name:
                     dp_exists = True
@@ -72,7 +72,7 @@ class IOBroker2Prometheus(object):
         self.create_gauge_metric_families()
 
         for DataPoint in self.IOBrokerDataPoints:
-            print(DataPoint.replace('\n',''))
+            #print(DataPoint.replace('\n',''))
             try:
                 # try to get device data
                 url = f'http://{self.iobroker_host}:{self.API_Port}/v1/object/{DataPoint}'
@@ -80,7 +80,7 @@ class IOBroker2Prometheus(object):
                 response = requests.get(url)
                 out = json.loads(response.text)
                 return_type = out['common']['type']
-                print(return_type)
+                #print(return_type)
             except Exception as err:
                 print(timestamp + ": Not able to get device data: " + str(err))
                 return_type = ""
@@ -93,7 +93,7 @@ class IOBroker2Prometheus(object):
                     response = requests.get(url)
                     out = json.loads(response.text)
                     value = out['val']
-                    print(value)
+                    #print(value)
                 except Exception as err:
                     print(timestamp + ": Not able to get device data: " + str(err))
                     value = -1
@@ -137,7 +137,7 @@ def main():
         port = 8022
 
     try:
-        iobroker_api_port = int(os.environ['API_PORT'])
+        iobroker_api_port = int(os.environ['IOBROKER_API_PORT'])
     except:
         iobroker_api_port = 4444
 
