@@ -9,7 +9,7 @@ __status__ = "Production"
 
 """"
 ###########################################################################################################
-  Prometheus Exporter for Mitsubishi MelCloud Devices
+  Prometheus Exporter for Mitsubishi IOBroker using swagger API
 
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
   and associated documentation files (the "Software"), to deal in the Software without restriction, 
