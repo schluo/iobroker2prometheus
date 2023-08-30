@@ -32,6 +32,7 @@ import json
 import os
 import time
 import requests
+import sys
 
 from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, REGISTRY
@@ -118,23 +119,24 @@ class IOBroker2Prometheus(object):
 def main():
     """Main entry point"""
 
-    print('=============================')
-    print('IoBroker2Prometheus Exporter')
-    print('Version: ', __version__)
-    print('=============================')
+    sys.stdout.write('=============================\n')
+    sys.stdout.write('IoBroker2Prometheus Exporter\n')
+    sys.stdout.write('Version: ' + __version__ + '\n')
+    sys.stdout.write('=============================\n')
+
 
     try:
         filename = os.environ['IOBROKER_DP_FILE']
-        print('Datapoint File: ' + filename)
+        print('Datapoint File: ' + filename + '\n')
     except:
-        print('No Datapoint file found')
+        sys.stderr.write('No Datapoint file found \n')
         exit(1)
 
     try:
         file1 = open(filename, 'r')
         IOBrokerDataPoints = file1.readlines()
     except Exception as err:
-        print('No Datapoint file load: '+ err)
+        sys.stderr.write('No Datapoint file load: '+ err + '\n')
         exit(1)
 
     try:
@@ -142,35 +144,35 @@ def main():
     except:
         port = 8022
 
-    print('Exporter Port: ', port)
+    sys.stdout.write('Exporter Port: ' + str(port) + '\n')
 
     try:
         iobroker_api_port = int(os.environ['IOBROKER_API_PORT'])
     except:
         iobroker_api_port = 4444
 
-    print('IOBroker API Port: ', iobroker_api_port)
+    sys.stdout.write('IOBroker API Port: ' + str(iobroker_api_port) + '\n')
 
     try:
         iobroker_host = os.environ['IOBROKER_HOST']
     except:
         iobroker_host = "127.0.0.1"
 
-    print('IOBroker Host: ', iobroker_host)
+    sys.stdout.write('IOBroker Host: ' + iobroker_host + '\n')
 
     try:
         iobroker_user = os.environ['IOBROKER_USER']
     except:
         iobroker_user = "user"
 
-    print('IOBroker User: ', iobroker_user)
+    sys.stdout.write('IOBroker User: ' + iobroker_user + '\n')
 
     try:
         iobroker_password = os.environ['IOBROKER_PASSWORD']
     except:
         iobroker_password = "password!"
 
-    print('IOBroker Pwd: ', iobroker_password)
+    sys.stdout.write('IOBroker Pwd: '+ iobroker_password + '\n')
 
     start_http_server(port)
 
