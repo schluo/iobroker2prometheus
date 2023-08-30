@@ -3,7 +3,7 @@
 
 __author__ = "Oliver Schlueter"
 __license__ = "GPL"
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __email__ = "oliver.schlueter@dell.com"
 __status__ = "Production"
 
@@ -118,9 +118,14 @@ class IOBroker2Prometheus(object):
 def main():
     """Main entry point"""
 
+    print('=============================')
+    print('IoBroker2Prometheus Exporter')
+    print('Version: ', __version__)
+    print('=============================')
+
     try:
         filename = os.environ['IOBROKER_DP_FILE']
-        print(filename)
+        print('Datapoint File: ' + filename)
     except:
         print('No Datapoint file found')
         exit(1)
@@ -137,25 +142,35 @@ def main():
     except:
         port = 8022
 
+    print('Exporter Port: ', port)
+
     try:
         iobroker_api_port = int(os.environ['IOBROKER_API_PORT'])
     except:
         iobroker_api_port = 4444
+
+    print('IOBroker API Port: ', iobroker_api_port)
 
     try:
         iobroker_host = os.environ['IOBROKER_HOST']
     except:
         iobroker_host = "127.0.0.1"
 
+    print('IOBroker Host: ', iobroker_host)
+
     try:
         iobroker_user = os.environ['IOBROKER_USER']
     except:
         iobroker_user = "user"
 
+    print('IOBroker User: ', iobroker_user)
+
     try:
         iobroker_password = os.environ['IOBROKER_PASSWORD']
     except:
         iobroker_password = "password!"
+
+    print('IOBroker Pwd: ', iobroker_password)
 
     start_http_server(port)
 
