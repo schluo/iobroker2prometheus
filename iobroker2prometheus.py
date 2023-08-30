@@ -9,7 +9,7 @@ __status__ = "Production"
 
 """"
 ###########################################################################################################
-  Prometheus Exporter for Mitsubishi IOBroker using swagger API
+  Prometheus Exporter for IOBroker using swagger API
 
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
   and associated documentation files (the "Software"), to deal in the Software without restriction, 
@@ -79,10 +79,11 @@ class IOBroker2Prometheus(object):
                 url = url.strip()
                 response = requests.get(url)
                 out = json.loads(response.text)
+                #print(DataPoint)
                 return_type = out['common']['type']
                 #print(return_type)
             except Exception as err:
-                print(timestamp + ": Not able to get device data: " + str(err))
+                print(timestamp + ": Not able to get device data: " + DataPoint)
                 return_type = ""
 
             if return_type != "":
