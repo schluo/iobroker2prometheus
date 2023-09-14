@@ -3,7 +3,7 @@
 
 __author__ = "Oliver Schlueter"
 __license__ = "GPL"
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __email__ = "oliver.schlueter@dell.com"
 __status__ = "Production"
 
@@ -58,59 +58,66 @@ class IOBroker2Prometheus(object):
         self.GaugeMetricFamilies.clear()
         self.Infos.clear()
         for DataPoint in self.IOBrokerDataPoints:
-            io_broker_object_name = DataPoint.split(".")[0].replace("-", "_").replace("0_","")
-            dp_exists = False
-            #print(io_broker_object_name)
-            for i in self.GaugeMetricFamilies:
-                if io_broker_object_name == i.name:
-                    dp_exists = True
-            if not dp_exists:
-                self.GaugeMetricFamilies.append(
-                    GaugeMetricFamily(io_broker_object_name, io_broker_object_name, labels=['sensor']))
+            try:
+                io_broker_object_name = DataPoint.split(".")[0].replace("-", "_").replace("0_","")
+                dp_exists = False
+                #print(io_broker_object_name)
+                for i in self.GaugeMetricFamilies:
+                    if io_broker_object_name == i.name:
+                        dp_exists = True
+                if not dp_exists:
+                    self.GaugeMetricFamilies.append(
+                        GaugeMetricFamily(io_broker_object_name, io_broker_object_name, labels=['sensor']))
+            except Exception as err:
+                print(timestamp + ": Not able to append metric: " + DataPoint, err)
 
     def collect(self):
         timestamp = datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)")
         self.create_gauge_metric_families()
 
         for DataPoint in self.IOBrokerDataPoints:
-            #print(DataPoint.replace('\n',''))
             try:
-                # try to get device data
-                url = f'http://{self.iobroker_host}:{self.API_Port}/v1/object/{DataPoint}'
-                url = url.strip()
-                response = requests.get(url)
-                out = json.loads(response.text)
-                #print(DataPoint)
-                return_type = out['common']['type']
-                #print(return_type)
-            except Exception as err:
-                print(timestamp + ": Not able to get device data: " + DataPoint)
-                return_type = ""
-
-            if return_type != "":
+                #print(DataPoint.replace('\n',''))
                 try:
                     # try to get device data
-                    url = f'http://{self.iobroker_host}:4444/v1/state/{DataPoint}'
+                    url = f'http://{self.iobroker_host}:{self.API_Port}/v1/object/{DataPoint}'
                     url = url.strip()
                     response = requests.get(url)
                     out = json.loads(response.text)
-                    value = out['val']
-                    #print(value)
+                    #print(DataPoint)
+                    return_type = out['common']['type']
+                    #print(return_type)
                 except Exception as err:
-                    print(timestamp + ": Not able to get device data: " + str(err))
-                    value = -1
+                    print(timestamp + ": Not able to get device data: " + DataPoint)
+                    return_type = ""
 
-            if return_type == 'boolean':
-                value = int(str(value).upper() == "TRUE")
+                if return_type != "":
+                    try:
+                        # try to get device data
+                        url = f'http://{self.iobroker_host}:4444/v1/state/{DataPoint}'
+                        url = url.strip()
+                        response = requests.get(url)
+                        out = json.loads(response.text)
+                        value = out['val']
+                        #print(value)
+                    except Exception as err:
+                        print(timestamp + ": Not able to get device data: " + str(err))
+                        value = -1
 
-            if return_type == 'number' or return_type == 'boolean':
-                for gauge_metric_family in self.GaugeMetricFamilies:
-                    FamilyName = DataPoint.split(".")[0].replace("-", "_").replace("0_", "")
-                    MetricName = DataPoint.replace(FamilyName + '.0.', "").replace('0_',"").strip()
+                if return_type == 'boolean':
+                    value = int(str(value).upper() == "TRUE")
 
-                    FamilyName = FamilyName.replace('-', '_')
-                    if gauge_metric_family.name == FamilyName:
-                        gauge_metric_family.add_metric([MetricName], value)
+                if return_type == 'number' or return_type == 'boolean':
+                    for gauge_metric_family in self.GaugeMetricFamilies:
+                        FamilyName = DataPoint.split(".")[0].replace("-", "_").replace("0_", "")
+                        MetricName = DataPoint.replace(FamilyName + '.0.', "").replace('0_',"").strip()
+
+                        FamilyName = FamilyName.replace('-', '_')
+                        if gauge_metric_family.name == FamilyName:
+                            gauge_metric_family.add_metric([MetricName], value)
+
+            except Exception as err:
+                print(timestamp + ": Not able to add value to metric: " + DataPoint, err)
 
         for gauge_metric_family in self.GaugeMetricFamilies:
             yield gauge_metric_family
