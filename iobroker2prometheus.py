@@ -3,7 +3,7 @@
 
 __author__ = "Oliver Schlueter"
 __license__ = "GPL"
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 __email__ = "oliver.schlueter@dell.com"
 __status__ = "Production"
 
@@ -107,7 +107,7 @@ class IOBroker2Prometheus(object):
                 if return_type == 'boolean':
                     value = int(str(value).upper() == "TRUE")
 
-                if return_type == 'number' or return_type == 'boolean':
+                if return_type == 'number' or return_type == 'boolean' or return_type == 'mixed':
                     for gauge_metric_family in self.GaugeMetricFamilies:
                         FamilyName = DataPoint.split(".")[0].replace("-", "_").replace("0_", "")
                         MetricName = DataPoint.replace(FamilyName + '.0.', "").replace('0_',"").strip()
