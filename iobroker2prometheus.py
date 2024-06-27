@@ -3,7 +3,7 @@
 
 __author__ = "Oliver Schlueter"
 __license__ = "GPL"
-__version__ = "1.2.1"
+__version__ = "1.2.2"
 __email__ = "oliver.schlueter@dell.com"
 __status__ = "Production"
 
@@ -55,6 +55,7 @@ class IOBroker2Prometheus(object):
         }
 
     def create_gauge_metric_families(self):
+        timestamp = datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)")
         self.GaugeMetricFamilies.clear()
         self.Infos.clear()
         for DataPoint in self.IOBrokerDataPoints:
@@ -82,6 +83,7 @@ class IOBroker2Prometheus(object):
                     # try to get device data
                     url = f'http://{self.iobroker_host}:{self.API_Port}/v1/object/{DataPoint}'
                     url = url.strip()
+                    #print(url)
                     response = requests.get(url)
                     out = json.loads(response.text)
                     #print(DataPoint)
@@ -99,6 +101,9 @@ class IOBroker2Prometheus(object):
                         response = requests.get(url)
                         out = json.loads(response.text)
                         value = out['val']
+                        if value == None:
+                            value  = -1
+
                         #print(value)
                     except Exception as err:
                         print(timestamp + ": Not able to get device data: " + str(err))
